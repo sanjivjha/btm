@@ -24,9 +24,7 @@ Steps of Gibbs algorithm for BTM:
 
 
 References
-[1] 
-[2]
-
+[1] Xiaohui Yan, Jiafeng Guo, Yanyan Lan, Xueqi Cheng. A Biterm Topic Model For Short Text. Submitted to WWW2013.
 
 TODO:
 

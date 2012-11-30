@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "biterm.h"
-#include <pvec.h>
+#include "pvec.h"
 
 using namespace std;
 

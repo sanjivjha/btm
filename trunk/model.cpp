@@ -8,9 +8,9 @@
 #include <algorithm>
 
 #include <algorithm>
-#include <sampler.h>
+#include "sampler.h"
 #include "model.h"
-#include <pmat.h>
+#include "pmat.h"
 
 void Model::run() {
   read_train_data();
