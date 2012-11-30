@@ -32,8 +32,6 @@ private:
   string dfile;			// inference docs
   Pvec<double> _pz;	    // p(z) = theta
   Pmat<double> _pw_z;   // p(w|z) = phi, size K * M
-
-  Pmat<double> _pz_d;   // p(w|z) = phi, size N * K
 };
 
 #endif

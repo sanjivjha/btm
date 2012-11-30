@@ -1,6 +1,5 @@
 CC=g++
 CFLAGS=-c -pipe -O3
-INCLUDE=-I /home/xh/Nutstore/my/code/cpp/mylib
 #SRC=$(wildcard *.cpp)
 MODEL_OBJ=model.o infer.o main.o
 MODEL_EXE=btm
@@ -15,7 +14,7 @@ model.o:model.h biterm.h
 infer.o:infer.h biterm.h
 
 %.o:%.cpp
-	$(CC) $(INCLUDE) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) $< -o $@
 
 clean:
 	rm -rf $(MODEL_OBJ) $(MODEL_EXE)

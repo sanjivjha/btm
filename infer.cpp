@@ -34,7 +34,14 @@ void Infer::run() {
   load_docs();
   
   load_para();
-  
+
+  ostringstream ss;
+  ss << dir << "zd.k" << K;
+  string pt = ss.str();
+  cout << "write p(z|d): " << pt << endl;
+  ofstream wf(pt.c_str());
+  if (!wf) wf.open("zd.txt");
+
   cout << "Infer topic proportions for docs." << endl;
   for (int d=0; d<docs.size(); ++d) {
     	if (d % 100000 == 0)
@@ -44,11 +51,12 @@ void Infer::run() {
 	//doc_infer_max(docs[d], d_pz);
 	doc_infer_sum(docs[d], d_pz);
 	//doc_infer_prod(docs[d], d_pz);
-	
-	_pz_d.add_row(d_pz);
+
+	wf << d_pz.str(false) << endl;
+	//_pz_d.add_row(d_pz);
   }
   
-  write_pz_d();
+  //  write_pz_d();
 }
 
 void Infer::load_para() {
@@ -164,20 +172,19 @@ void Infer::doc_infer_prod(const vector<Biterm>& bis, Pvec<double>& d_pz) {
   d_pz.exp_normalize();
 }
 
-// pz_d size D, write K*D
-void Infer::write_pz_d() {
-  ostringstream ss;
-  ss << dir << "zd.k" << K;
-  string pt = ss.str();
+// // pz_d size D, write D*K
+// void Infer::write_pz_d() {
+//   ostringstream ss;
+//   ss << dir << "zd.k" << K;
+//   string pt = ss.str();
   
-  cout << "write p(z|d): " << pt << endl;
-  ofstream wf(pt.c_str());
-  if (!wf) wf.open("zd.txt");
+//   cout << "write p(z|d): " << pt << endl;
+//   ofstream wf(pt.c_str());
+//   if (!wf) wf.open("zd.txt");
 
-  for (int c=0; c < _pz_d.cols(); ++c) {
-	for (int i=0; i < _pz_d.rows(); ++i) 
-	  wf << _pz_d[i][c] << " ";
-	wf << endl;
-  }
-  //_pz_d.transpose().write(pt);
-}
+//   for (int i=0; i < _pz_d.rows(); ++i) 
+//     for (int c=0; c < _pz_d.cols(); ++c) {
+// 	  wf << _pz_d[i][c] << " ";
+// 	wf << endl;
+//   }
+// }
