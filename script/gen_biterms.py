@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #coding=utf-8
 # extract biterms from docs
-# input:  doc_wids.txt
+# input:  doc_wids.txt, each line is a short text document
 #    w1  w2  w3 ...
 # output: doc_biterms.txt
 #    did   wi   wj    freq
