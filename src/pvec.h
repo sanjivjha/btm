@@ -27,11 +27,13 @@ private:
 public:
   Pvec(){}
   Pvec(size_t n): p(n) {}
+  Pvec(size_t n, T v): p(n, v) {}
   Pvec(const vector<T>& v): p(v) {}
   Pvec(const Pvec<T>& v): p(v.p) {}
   Pvec(const string& line);
   
   void resize(size_t n) {p.resize(n);}
+  void resize(size_t n, const T& v) {p.resize(n, v);}
   void assign(size_t n, const T& v) {p.assign(n, v);}
   
   void rand_init();
@@ -40,7 +42,7 @@ public:
   
   void push_back(T v) {p.push_back(v);}
   
-  void load_data(const string& inf);
+  void load_data(const string& inf, char delim=' ');
   T sum() const;
   T norm() const;
   void normalize(double smoother=0);
@@ -119,9 +121,22 @@ public:
 	return tp;
   }
 
+  T max() const {
+	T max_v = -10000000;
+	for (int i=0; i<p.size(); ++i) {
+	  if (p[i] > max_v) {
+		max_v = p[i];
+	  }
+	}
+	return max_v;
+  }
+  
   size_t size() const {return p.size();}
-  string str(bool col=true) const;
+  
   vector<T> to_vector() {return p;}
+
+  string str(char delim=' ') const;
+  void write(const string& pt);
 };
 
 template<class T>
@@ -145,7 +160,7 @@ void Pvec<T>::rand_init() {
 template<class T>
 void Pvec<T>::uniform_init() {
   for( size_t i = 0 ; i < p.size() ; ++i ) 
-	p[i] = (double)(1 / p.size());
+	p[i] = double(1) / p.size();
 }
 
 template<class T>
@@ -159,21 +174,19 @@ void Pvec<T>::bias_init(double v) {
 // load a varible an line, make sure no empty lines
 // the number of rows determinates the dimension of vector
 template<class T>
-void Pvec<T>::load_data(const string& inf) {
+void Pvec<T>::load_data(const string& inf, char delim) {
   ifstream rf(inf.c_str());
   if (!rf) 
 	EXIT_ERR("file not find:", inf.c_str());
 
   p.clear();
   string line;
-  while (getline(rf, line)) {
+  while (getline(rf, line, delim)) {
 	istringstream iss(line);
 	T v;
 	iss >> v;
 	p.push_back(v);
   }
-
-  normalize();
 }
 
 template<class T>
@@ -218,11 +231,7 @@ void Pvec<T>::exp_normalize() {
 
 
 template<class T>
-string Pvec<T>::str(bool col) const{
-  char delim;
-  if (col) delim = '\n';		// write in a column
-  else delim = '\t';			// write in a row
-  
+string Pvec<T>::str(char delim) const{
   ostringstream os;
   size_t i;
   for( i = 0 ; i < p.size()-1; ++i ) 
@@ -231,6 +240,14 @@ string Pvec<T>::str(bool col) const{
   if (i < p.size())
 	os << p[i];
   return os.str();
+}
+
+template<class T>
+void Pvec<T>::write(const string& pt) {
+  ofstream wf(pt.c_str());
+  if (!wf) wf.open("pvec.txt");
+  
+  wf << str() << endl;
 }
 
 #endif
