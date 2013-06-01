@@ -1,37 +1,40 @@
-#ifndef _INFER_H
-#define _INFER_H
-
-#include <string>
+#ifndef _INFERLDA_H
+#define _INFERLDA_H
 #include "pvec.h"
 #include "pmat.h"
-#include "biterm.h"
+
+#include "doc.h"
+#include "dataset.h"
 
 using namespace std;
 
 class Infer {
-public:
-  Infer(int K, const string& dfile, const string& dir): K(K), dfile(dfile), dir(dir){}
-  void run();
-  
 private:
-  void load_docs();
-  void load_para();
-  //inference topic proportions of docs via max(p(z|b))
-  void doc_infer_sum(const vector<Biterm>& biterms, Pvec<double>&);
-  void doc_infer_sum2(const vector<Biterm>& biterms, Pvec<double>&);
-  void doc_infer_max(const vector<Biterm>& biterms, Pvec<double>&);
-  void doc_infer_prod(const vector<Biterm>& biterms, Pvec<double>&); // infer as mixture of Unigrams
+  Dataset data;
 
-  void write_pz_d();
-  
-private:
   int K;
+  int n_iter;
   
-  vector<vector<Biterm> > docs;
   string dir;			// parameters dir
   string dfile;			// inference docs
   Pvec<double> _pz;	    // p(z) = theta
   Pmat<double> _pw_z;   // p(w|z) = phi, size K * M
+
+  ofstream wf;					// hander of p(z|d) writer
+
+private:
+  void load_para();
+
+  void doc_infer_sum_b(const Doc& doc, Pvec<double>& pz_d);
+  void doc_infer_sum_w(const Doc& doc, Pvec<double>& pz_d);
+
+  // compute condition distribution p(z|w, d) with p(w|z) fixed
+  void compute_pz_dw(int w, const Pvec<double>& pz_d, Pvec<double>& p); 
+  
+public:
+  Infer(int K, int n_iter, const string& dfile, const string& dir);
+  void run();
+
 };
 
 #endif

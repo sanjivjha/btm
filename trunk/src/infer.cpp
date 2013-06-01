@@ -1,62 +1,40 @@
-#include <sstream>
 #include <iostream>
-#include <cmath>
-#include <limits>
+#include <sstream>
 #include "infer.h"
 
-// load docs to be inferred
-// input format:did   w1    w2    freq
-void Infer::load_docs(){
-  printf("infer docs:%s\n", dfile.c_str());
-  ifstream rf( dfile.c_str() );
-  if (!rf) 	EXIT_ERR("file not find:", dfile.c_str());
-  
-  string line;
-  while ( getline(rf, line) ) {
-    if (line.empty()) continue;
-	int did, w1, w2, freq;
-	istringstream iss(line);
-	iss >> did >> w1 >> w2 >> freq;
+Infer::Infer(int K, int n_iter, const string& dfile, const string& dir):
+  K(K), n_iter(n_iter), dfile(dfile), dir(dir){
+  ostringstream ss;
+  ss << "zd.k" << K;
+  string suf = ss.str();
+  string pt = dir + suf;
 
-	// insert a biterm for doc did
-	Biterm b(w1, w2, freq);
-	while (docs.size() < did + 1) {
-	  vector<Biterm> doc;
-	  docs.push_back(doc);
-	}
-	docs[did].push_back(b);
+  cout << "write p(z|d):" << pt << endl;
+  wf.open(pt.c_str());
+  if (!wf) {
+	cout << "[Error]Wirte:" << pt.c_str() << endl;
+	exit(-1);
   }
-
-  printf("n(d):%d\n", docs.size());
 }
 
 void Infer::run() {
-  load_docs();
+  data.load_docs(dfile);
   
   load_para();
-
-  ostringstream ss;
-  ss << dir << "zd.k" << K;
-  string pt = ss.str();
-  cout << "write p(z|d): " << pt << endl;
-  ofstream wf(pt.c_str());
-  if (!wf) wf.open("zd.txt");
-
-  cout << "Infer topic proportions for docs." << endl;
-  for (int d=0; d<docs.size(); ++d) {
-    	if (d % 100000 == 0)
-	  cout << "progress: " << d << '/' << docs.size() << endl;
-	
-	Pvec<double> d_pz;
-	//doc_infer_max(docs[d], d_pz);
-	doc_infer_sum(docs[d], d_pz);
-	//doc_infer_prod(docs[d], d_pz);
-
-	wf << d_pz.str(false) << endl;
-	//_pz_d.add_row(d_pz);
-  }
   
-  //  write_pz_d();
+  cout << "Infer topic proportions for docs." << endl;
+  const vector<Doc>& docs = data.get_ds();
+  for (int d = 0; d < docs.size(); ++d) {
+	if (d % 10000 == 0)
+	  cout << "infer progress: " << d << '/' << docs.size() << endl;
+	
+	Pvec<double> pz_d(K);
+	doc_infer_sum_b(data.get_d(d), pz_d);
+	// doc_infer_sum_w(d, pz_d);
+
+	// write p(z|d) for d, a doc a time
+	wf << pz_d.str() << endl;
+  }  
 }
 
 void Infer::load_para() {
@@ -75,116 +53,73 @@ void Infer::load_para() {
   _pw_z.load_data(pt);
 }
 
+// compute p(z|d, w) \proto p(w|z)p(z|d)
+void Infer::compute_pz_dw(int w, const Pvec<double>& pz_d, Pvec<double>& p) {
+  p.resize(K);
+  
+  for (int k = 0; k < K; ++k) {
+	p[k] = _pw_z[k][w] * pz_d[k];
+  }
+  p.normalize();
+}
+
+
 // p(z|d) = \sum_b{ p(z|b)p(b|d) }
-void Infer::doc_infer_sum(const vector<Biterm>& bis, Pvec<double>& d_pz) {
-  d_pz.assign(K, 0);
-  // more than one words
-  for (vector<Biterm>::const_iterator it = bis.begin();
-	   it != bis.end();
-	   ++it) {
-	int w1 = it->first();
-	int w2 = it->second();
-	
-	// compute p(z|b) \propo p(w1|z)p(w2|z)p(z)
-	Pvec<double> pz_b(K);
-	for (int k = 0; k < K; ++k) {
-	  assert(_pw_z[k][w1]>0 && _pw_z[k][w2]>0);
-	  pz_b[k] = _pz[k] * _pw_z[k][w1] * _pw_z[k][w2];
-	}
-	pz_b.normalize();
-	
-	// sum for b, p(b|d) is unifrom
-	for (int k = 0; k < K; ++k) 
-	  d_pz[k] += pz_b[k];
-  }
-  d_pz.normalize();
-}
-
-// p(z|d) = \sum_b_\in_D{ p(b,z)=p(w1|z)p(w2|z)p(z) }
-void Infer::doc_infer_sum2(const vector<Biterm>& bis, Pvec<double>& d_pz) {
-  d_pz.assign(K, 0);
-  // more than one words
-  for (vector<Biterm>::const_iterator it = bis.begin();
-	   it != bis.end();
-	   ++it) {
-	int w1 = it->first();
-	int w2 = it->second();
-	
-	// compute p(z|b) \propo p(w1|z)p(w2|z)p(z)
-	Pvec<double> pz_b(K);
-	for (int k = 0; k < K; ++k) {
-	  assert(_pw_z[k][w1]>0 && _pw_z[k][w2]>0);
-	  pz_b[k] = _pz[k] * _pw_z[k][w1] * _pw_z[k][w2];
-	}
-	//pz_b.normalize();
-	
-	// sum for b, p(b|d) is unifrom
-	for (int k = 0; k < K; ++k) 
-	  d_pz[k] += pz_b[k];
-  }
-  d_pz.normalize();
-}
-
-// p(z|d)~ max_b(p(z|b))
-void Infer::doc_infer_max(const vector<Biterm>& bis, Pvec<double>& d_pz) {
-  d_pz.assign(K, 0);
-  // more than one words
-  for (vector<Biterm>::const_iterator it = bis.begin();
-	   it != bis.end();
-	   ++it) {
-	int w1 = it->first();
-	int w2 = it->second();
-	
-	// compute p(z|b) \propo p(w1|z)p(w2|z)p(z)
-	Pvec<double> pz_b(K);
-	for (int k = 0; k < K; ++k) {
-	  assert(_pw_z[k][w1]>0 && _pw_z[k][w2]>0);
-	  pz_b[k] = _pz[k] * _pw_z[k][w1] * _pw_z[k][w2];
-	}
-	pz_b.normalize();
-	
-	// sum for b, p(b|d) is unifrom
-	for (int k = 0; k < K; ++k) 
-	  if (d_pz[k] < pz_b[k])
-		d_pz[k] = pz_b[k];
-  }
-  d_pz.normalize();
-}
-
-// p(z|d) = \prod_b{ p(z|b)p(b|d) }
-void Infer::doc_infer_prod(const vector<Biterm>& bis, Pvec<double>& d_pz) {
-  d_pz.assign(K, 0);
-  // more than one words
-  for (vector<Biterm>::const_iterator it = bis.begin();
-	   it != bis.end();
-	   ++it) {
-	int w1 = it->first();
-	int w2 = it->second();
-	
-	// compute p(z|b) \propo p(w1|z)p(w2|z)p(z)
-	for (int k = 0; k < K; ++k) 
-	  d_pz[k] += log(_pw_z[k][w1]) + log(_pw_z[k][w2]);	
-  }
+void Infer::doc_infer_sum_b(const Doc& doc, Pvec<double>& pz_d) {
+  pz_d.assign(K, 0);
   
-	// sum for b, p(b|d) is unifrom
-  for (int k = 0; k < K; ++k) 
-	d_pz[k] = 0.5 * d_pz[k] + log(_pz[k]);
-  d_pz.exp_normalize();
+  if (doc.size() == 1) {
+	// doc is a single word, p(z|d) = p(z|w) \propo p(z)p(w|z)
+	for (int k = 0; k < K; ++k) 
+	  pz_d[k] = _pz[k] * _pw_z[k][doc.get_w(0)];
+  }
+  else {
+	// more than one words
+	vector<Biterm> bis;
+	doc.extr_biterms(bis);
+  
+	for (vector<Biterm>::const_iterator it = bis.begin();
+		 it != bis.end();
+		 ++it) {
+	  int w1 = it->first();
+	  int w2 = it->second();
+	
+	  // compute p(z|b) \propo p(w1|z)p(w2|z)p(z)
+	  Pvec<double> pz_b(K);
+	  for (int k = 0; k < K; ++k) {
+		assert(_pw_z[k][w1]>0 && _pw_z[k][w2]>0);
+		pz_b[k] = _pz[k] * _pw_z[k][w1] * _pw_z[k][w2];
+	  }
+	  pz_b.normalize();
+	
+	  // sum for b, p(b|d) is unifrom
+	  for (int k = 0; k < K; ++k) 
+		pz_d[k] += pz_b[k];
+	}
+  }
+  pz_d.normalize();
 }
 
-// // pz_d size D, write D*K
-// void Infer::write_pz_d() {
-//   ostringstream ss;
-//   ss << dir << "zd.k" << K;
-//   string pt = ss.str();
-  
-//   cout << "write p(z|d): " << pt << endl;
-//   ofstream wf(pt.c_str());
-//   if (!wf) wf.open("zd.txt");
+// p(z|d) = \sum_w{ p(z|w)p(w|d) }
+void Infer::doc_infer_sum_w(const Doc& doc, Pvec<double>& pz_d) {
+  pz_d.assign(K, 0);
 
-//   for (int i=0; i < _pz_d.rows(); ++i) 
-//     for (int c=0; c < _pz_d.cols(); ++c) {
-// 	  wf << _pz_d[i][c] << " ";
-// 	wf << endl;
-//   }
-// }
+  const vector<int>& ws = doc.get_ws();
+  for (vector<int>::const_iterator it = ws.begin();
+	   it != ws.end();
+	   ++it) {
+	int w = *it;
+	
+	// compute p(z|w) \propo p(w|z)p(z)
+	Pvec<double> pz_w(K);
+	for (int k = 0; k < K; ++k) 
+	  pz_w[k] = _pz[k] * _pw_z[k][w];
+	
+	pz_w.normalize();
+	
+	// sum for b, p(b|d) is unifrom
+	for (int k = 0; k < K; ++k) 
+	  pz_d[k] += pz_w[k];
+  }
+  pz_d.normalize();
+}

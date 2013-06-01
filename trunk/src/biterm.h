@@ -2,8 +2,10 @@
 #define _BITERM_H
 
 #include <cmath>
-using std::min;
-using std::max;
+#include <string>
+#include <sstream>
+
+using namespace std;
 
 class Biterm {
 public: 
@@ -17,6 +19,12 @@ public:
   int count() const {return freq;}
   int first() const {return wi;}
   int second() const {return wj;}
+
+  string str() {
+	ostringstream os;
+	os << wi << '\t' << wj << '\t' << freq;
+	return os.str();
+  }
   
 private:
   int wi;
