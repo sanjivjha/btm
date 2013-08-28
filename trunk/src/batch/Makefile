@@ -1,7 +1,5 @@
 CC=g++
 CFLAGS=-c -pipe -O3
-INCLUDE=-I /home/xh/jianguoyun/my/code/cpp/mylib
-#SRC=$(wildcard *.cpp)
 MODEL_OBJ=model.o infer.o main.o
 MODEL_EXE=btm
 
