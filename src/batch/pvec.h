@@ -13,7 +13,6 @@
 #include <sstream>
 #include <cstdio>
 #include <cstdlib>
-#include "debug.h"
 
 #define EXIT_ERR( s1, s2 ) {printf("[Error] %s%s\n", s1, s2);	\
 	exit(EXIT_FAILURE);}
@@ -223,9 +222,6 @@ T Pvec<T>::norm() const{
 template<class T>
 void Pvec<T>::normalize(double smoother) {
   T s = sum();
-  if (s <= 0) {
-	debug::print_vec(p);
-  }
   assert(s>0);
   
   int K = p.size();
