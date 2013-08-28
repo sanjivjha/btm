@@ -23,6 +23,8 @@ Steps of Gibbs algorithm for BTM:
 
 
 [History]
+2013-8-28     Add online BTM. 
+
 2013-6-1      Add the process of single word document Inference.
 
 2013-5-6      add a doc_infer_sum_w inference procedure.
