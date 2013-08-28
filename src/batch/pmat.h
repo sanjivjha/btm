@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <exception>
 #include <ctime>
@@ -39,10 +40,11 @@ public:
   void resize(int M, int N);
   void resize(int M, int N, T v);
   void rand_init();				// each entry (0,1]
-  void load_data(const string& inf);
+  void load(const string& inf);
   void load_tmat(const string& inf);
   
   const int rows() const {return array.size();}
+  const int size() const {return rows();}
   const int cols() const {return rows()?array[0].size():0;}
   Pvec<T> &operator[] (int m){return array[m];}
   const Pvec<T> &operator[] (int m) const {return array[m];}
@@ -155,7 +157,7 @@ void Pmat<T>::rand_init() {
 // input format: v v v ...
 // dimensions of the matrix are determinated by input data
 template<class T>
-void Pmat<T>::load_data(const string& inf) {
+void Pmat<T>::load(const string& inf) {
   ifstream rf(inf.c_str());
   if (!rf) 
 	EXIT_ERR("file not find:", inf.c_str());
@@ -269,7 +271,10 @@ string Pmat<T>::str() {
 template<class T>
 void Pmat<T>::write(const string& pt) {
   ofstream wf(pt.c_str());
-  if (!wf) wf.open("pmat.txt");
+  if (!wf) {
+	cout << "Path not exists:" << pt << endl;
+	wf.open("pmat.txt");
+  }
   
   for (int i=0; i<rows(); ++i) 
 	wf << array[i].str() << endl;

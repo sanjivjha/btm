@@ -9,9 +9,11 @@
 #include <cmath>
 #include <ctime>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <cstdio>
 #include <cstdlib>
+#include "debug.h"
 
 #define EXIT_ERR( s1, s2 ) {printf("[Error] %s%s\n", s1, s2);	\
 	exit(EXIT_FAILURE);}
@@ -42,7 +44,7 @@ public:
   
   void push_back(T v) {p.push_back(v);}
   
-  void load_data(const string& inf, char delim=' ');
+  void load(const string& inf, char delim=' ');
   T sum() const;
   T norm() const;
   void normalize(double smoother=0);
@@ -130,7 +132,19 @@ public:
 	}
 	return max_v;
   }
-  
+
+  int max_idx() const {
+	T max_v = -10000000;
+	int idx = 0;
+	for (int i=0; i<p.size(); ++i) {
+	  if (p[i] > max_v) {
+		max_v = p[i];
+		idx = i;
+	  }
+	}
+	return idx;
+  }
+
   size_t size() const {return p.size();}
   
   vector<T> to_vector() {return p;}
@@ -151,6 +165,7 @@ Pvec<T>::Pvec(const string& line) {
 
 template<class T>
 void Pvec<T>::rand_init() {
+  srand(time(NULL));
   for (size_t i = 0; i < p.size(); ++i) 
 	p[i] = rand() % 100 + 1;
 
@@ -174,7 +189,7 @@ void Pvec<T>::bias_init(double v) {
 // load a varible an line, make sure no empty lines
 // the number of rows determinates the dimension of vector
 template<class T>
-void Pvec<T>::load_data(const string& inf, char delim) {
+void Pvec<T>::load(const string& inf, char delim) {
   ifstream rf(inf.c_str());
   if (!rf) 
 	EXIT_ERR("file not find:", inf.c_str());
@@ -208,11 +223,16 @@ T Pvec<T>::norm() const{
 template<class T>
 void Pvec<T>::normalize(double smoother) {
   T s = sum();
+  if (s <= 0) {
+	debug::print_vec(p);
+  }
+  assert(s>0);
+  
   int K = p.size();
-  //assert(s>0);
   // avoid numerical problem
-  for( size_t i = 0 ; i < K ; ++i ) 
+  for( size_t i = 0 ; i < K ; ++i ) {
 	p[i] = (p[i] + smoother)/(s + K*smoother);
+  }
 }
 
 template<class T>
@@ -220,9 +240,8 @@ void Pvec<T>::exp_normalize() {
   vector<T> tmp(p);
   for (size_t i = 0; i < p.size(); ++i ) {
     double s = 0.0;
-	for (size_t j = 0; j < p.size(); ++j ) {
+	for (size_t j = 0; j < p.size(); ++j ) 
 	  s += exp( tmp[j] - tmp[i] );
-	}
 	
 	assert(s>=1);
     p[i] = 1/s;
@@ -245,7 +264,10 @@ string Pvec<T>::str(char delim) const{
 template<class T>
 void Pvec<T>::write(const string& pt) {
   ofstream wf(pt.c_str());
-  if (!wf) wf.open("pvec.txt");
+  if (!wf) {
+	cout << "Path not exists:" << pt << endl;
+	wf.open("pvec.txt");
+  }
   
   wf << str() << endl;
 }
