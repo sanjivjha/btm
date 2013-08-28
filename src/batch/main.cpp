@@ -13,27 +13,31 @@
 using namespace std;
 
 void usage() {
-  cout << "Usage:\n"
-       << "btm est K alpha beta pt_input pt_outdir n_iter\n"
+  cout << "Usage for estimation:\n"
+       << "btm est <K> <W> <alpha> <beta> <n_iter> <save_step> <pt_input> <pt_outdir>\n"
        << "\tK\tint, number of topics, like 20\n"
-       << "\talpha\tdouble, Pymmetric Dirichlet prior of P(z), like 1.0\n"
-       << "\tbeta\tdouble, Pymmetric Dirichlet prior of P(w|z), like 0.01\n"
-       << "\tpt_input\ttraining biterms file\n"
+	   << "\tW\tint, size of vocabulary\n"
+       << "\talpha\tdouble, Symmetric Dirichlet prior of P(z), like 1\n"
+       << "\tbeta\tdouble, Symmetric Dirichlet prior of P(w|z), like 0.01\n"
+	   << "\tn_iter\tint, number of iterations of Gibbs sampling\n"
+	   << "\tsave_step\nint, steps to save the results\n"
+       << "\tpt_input\tpath of training docs\n"
+       << "\tpt_outdir\toutput directory\n";
+  cout << "Usage for inference:\n"
+       << "btm inf <type> <K> <pt_input> <pt_outdir>\n"
+	   << "\ttype\t 4 choices:sum_w, sum_b, lda, mix. sum_b is used in our paper.\n"
+       << "\tpt_input\tpath of training docs\n"
        << "\tpt_outdir\toutput directory\n"
-       << "btm inf K pt_input pt_outdir\n"
-       << "\tpt_input\tinference biterms file\n"
-       << "\tpt_outdir\tparameters/output directory\n";
 }
 
 int main(int argc, char* argv[]) {
-  // test_main();
-  //// load parameters from std input
   if (argc < 4) {
     usage();
     return 1;
   }  
 
   if (strcmp(argv[1], "est")==0) {
+	// estimation
     int K = atoi(argv[2]);                  // topic num
 	int W = atoi(argv[3]);
     double alpha = atof(argv[4]);    // hyperparameters of p(z)
@@ -43,7 +47,13 @@ int main(int argc, char* argv[]) {
     string dfile(argv[8]);
     string dir(argv[9]);
 
-    cout << "==== BTM Gibbs, K=" << K << ", W=" << W << ", alpha=" << alpha << ", beta=" << beta << ", n_iter=" << n_iter << ", save_step=" << save_step << " ====" << endl;	
+    cout << "==== BTM Gibbs, K=" << K
+		 << ", W=" << W
+		 << ", alpha=" << alpha
+		 << ", beta=" << beta
+		 << ", n_iter=" << n_iter
+		 << ", save_step=" << save_step
+		 << " ====" << endl;	
 
     // load training data from file
 	clock_t start = clock();
@@ -53,6 +63,7 @@ int main(int argc, char* argv[]) {
 	printf("cost %fs\n", double(end - start)/CLOCKS_PER_SEC);
 	
   } else if (strcmp(argv[1], "inf")==0) {
+	// inference
 	string type(argv[2]);
     int K = atoi(argv[3]);                  // topic num
     string dfile(argv[4]);
