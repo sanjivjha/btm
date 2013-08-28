@@ -1,11 +1,9 @@
 BRIFE ILLUSTRATION OF THE IMPLEMENTATIONS OF BTM AND BBTM MODEL
-More detail is refered to the following paper:
-[1] Xiaohui Yan, Jiafeng Guo, Yanyan Lan, Xueqi Cheng. A Biterm Topic Model For Short Text. WWW2013.
 
-Author: Xiaohui Yan(xhcloud@gmail.com)
-Date: 2012-09-25
-Version: 0.2
-
+Biterm Topic Model (BTM) is a topic model developed for short text, 
+like microblogs and webpage titles. It learns topics by modeling the
+generation process of word co-occurrences (referred as biterms), rather
+than word-document co-occurrences.
 
 1. Biterm Topic Model(BTM)
 In BTM, the distribution of a biterm b=(w1,w2) is
@@ -21,6 +19,49 @@ Steps of Gibbs algorithm for BTM:
 3) looper step 2) until converge
 4) inference the parameters {P(k), P(w|k)}
 
+More detail is refered to the following paper:
+[1] Xiaohui Yan, Jiafeng Guo, Yanyan Lan, Xueqi Cheng. A Biterm Topic Model For Short Text. WWW2013.
+
+2. Usage
+1) Usage for estimation:
+# ./btm est <K> <W> <alpha> <beta> <n_iter> <save_step> <pt_input> <pt_outdir>
+	K	int, number of topics, like 20
+	W	int, size of vocabulary
+	alpha	double, Symmetric Dirichlet prior of P(z), like 1
+	beta	double, Symmetric Dirichlet prior of P(w|z), like 0.01
+	n_iter	int, number of iterations of Gibbs sampling
+	save_step	int, steps to save the results
+	pt_input	string, path of training docs
+	pt_outdir	string, output directory
+
+2) Usage for inference:
+# ./btm inf <type> <K> <pt_input> <pt_outdir>
+	K	int, number of topics, like 20
+	type	 string, 4 choices:sum_w, sum_b, lda, mix. sum_b is used in our paper.
+	pt_input	string, path of training docs
+	pt_outdir	string, output directory
+
+There are two scripts in "script/" to help you run a toy example in
+"data" directory.
+3) run.sh
+run a toy exapmle.
+
+4) Results inspection
+# python script/tran.py   
+Output the topics with top 10 words of the topy example.
+
+3. Input & Output
+1) Input
+The input file contains all the training documents. Each line records
+a short text doucment, and word indexes (starts from 0) seperated by
+space. See the toy example in data/doc_wids.txt
+
+2) Output
+The estimation program will output into the directory "pt_ourdir":
+  * pw_z.k20  a K*M matrix for P(w|z), if K=20
+  * pz.k20   a K*1 matrix for P(z), if K=20
+The inference program will produce:
+  * pz_d.k20 a N*K matrix for P(z|d), if K=20
 
 [History]
 2013-8-28     Add online BTM. 
@@ -33,3 +74,5 @@ Steps of Gibbs algorithm for BTM:
 			  from biterms to word sequences. Example is the test/doc_wids.txt.
 
 2012-09-25    v0.1
+
+Feel free to contact: Xiaohui Yan(xhcloud@gmail.com)
