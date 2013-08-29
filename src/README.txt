@@ -1,6 +1,7 @@
 BRIFE ILLUSTRATION OF THE IMPLEMENTATIONS OF BTM AND BBTM MODEL
 
-Biterm Topic Model (BTM) is a topic model developed for short text, 
+Biterm Topic Model (BTM) is a topic model developed for short text
+(need to set a window length when generating biterms for nomral text), 
 like microblogs and webpage titles. It learns topics by modeling the
 generation process of word co-occurrences (referred as biterms), rather
 than word-document co-occurrences.
@@ -23,6 +24,9 @@ More detail is refered to the following paper:
 [1] Xiaohui Yan, Jiafeng Guo, Yanyan Lan, Xueqi Cheng. A Biterm Topic Model For Short Text. WWW2013.
 
 2. Usage
+Before running the code, just type "make" in "src/batch" directory 
+to generate the executable file "btm".
+
 1) Usage for estimation:
 # ./btm est <K> <W> <alpha> <beta> <n_iter> <save_step> <pt_input> <pt_outdir>
 	K	int, number of topics, like 20
