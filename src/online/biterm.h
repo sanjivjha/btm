@@ -29,7 +29,7 @@ public:
   int get_wi() const {return wi;}
   int get_wj() const {return wj;}
   int get_z() const {return z;}
-  int set_z(int k) {z = k;}
+  void set_z(int k) {z = k;}
   void reset_z() {z = -1;}
   
   string str() const {
