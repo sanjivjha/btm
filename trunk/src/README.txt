@@ -1,7 +1,7 @@
 BRIFE ILLUSTRATION OF THE IMPLEMENTATIONS OF BTM AND BBTM MODEL
 
 Biterm Topic Model (BTM) is a topic model developed for short text
-(need to set a window length when generating biterms for nomral text), 
+(need to set a window length in the function "gen_biterm()" in doc.h when generating biterms for nomral text), 
 like microblogs and webpage titles. It learns topics by modeling the
 generation process of word co-occurrences (referred as biterms), rather
 than word-document co-occurrences.

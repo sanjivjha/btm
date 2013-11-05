@@ -30,9 +30,11 @@ public:
   //const int get_day() const {return day;}
 
   void gen_biterms(vector<Biterm>& bs) const {
-	for (int i = 0; i < ws.size()-1; ++i)
-	  for (int j = i+1; j < ws.size(); ++j)
-		bs.push_back( Biterm(ws[i], ws[j]) );
+	// window size for biterm extraction
+	int win = 15;
+	for (int i = 0; i < ws.size()-1; ++i) 
+	  for (int j = i+1; j < min(i + win, ws.size()); ++j) 
+		bs.push_back( Biterm(ws[i], ws[j], weight) );
   }
 
 private:
