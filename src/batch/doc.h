@@ -31,9 +31,11 @@ public:
 	if (ws.size() < 2) return;
 	//double weight = double(1) / (ws.size()-1);   // for weighted BTM in our journal paper
 	double weight = 1;			// for original BTM in our WWW2013 paper
-
+	
+	// window size for biterm extraction
+	int win = 15;
 	for (int i = 0; i < ws.size()-1; ++i) 
-	  for (int j = i+1; j < ws.size(); ++j) 
+	  for (int j = i+1; j < min(i + win, ws.size()); ++j) 
 		bs.push_back( Biterm(ws[i], ws[j], weight) );
   }
 
